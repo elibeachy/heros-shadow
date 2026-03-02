@@ -392,6 +392,20 @@
     background-clip: text;
   }
 
+  .action-btn.restart-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--text-dim);
+  }
+
+  .action-btn.restart-btn:hover {
+    background: rgba(255, 68, 85, 0.12);
+    border-color: var(--red);
+    color: var(--red);
+    box-shadow: 0 0 20px var(--red-glow);
+    transform: translateY(-2px);
+  }
+
   .turn-indicator {
     font-size: 0.78rem;
     font-weight: 700;
@@ -858,6 +872,18 @@
     transform: translateY(-2px);
   }
 
+  .action-btn.triple-btn {
+    background: rgba(255, 215, 0, 0.08);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .action-btn.triple-btn:hover:not(.disabled) {
+    background: rgba(255, 215, 0, 0.16);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
   .action-btn:active { transform: translateY(0) scale(0.97); }
 
   .action-btn.disabled, .action-btn:disabled {
@@ -1151,6 +1177,9 @@
       <button class="team-size-btn" data-size="4">4v4</button>
       <button class="team-size-btn" data-size="5">5v5</button>
       <button class="team-size-btn" data-size="6">6v6</button>
+      <button class="team-size-btn" data-size="7">7v7</button>
+      <button class="team-size-btn" data-size="8">8v8</button>
+      <button class="team-size-btn" data-size="9">9v9</button>
     </div>
   </div>
 
@@ -1229,6 +1258,14 @@
           <span class="btn-icon">💥</span>
           <span>DOUBLE SHOT</span>
         </button>
+        <button class="action-btn triple-btn disabled" id="btn-triple">
+          <span class="btn-icon">⚡</span>
+          <span>TRIPLE SHOT</span>
+        </button>
+        <button class="action-btn restart-btn" id="restart-btn">
+          <span class="btn-icon">🔄</span>
+          <span>RESTART</span>
+        </button>
       </div>
 
       <div class="target-prompt" id="target-prompt">
@@ -1269,24 +1306,29 @@
 // Stats: atk/def/heal are multipliers (1.0 = normal, 1.5 = strong, 0.7 = weak)
 // specialty is shown on the card so the player knows what each character is good at
 const HEROES = [
-  { id: 'link',   name: 'Link',   title: 'The Hero',       emoji: '⚔️',  stars: 5, side: 'hero', atk: 1.4, def: 1.0, heal: 0.8, specialty: '⚔️ Power' },
-  { id: 'zelda',  name: 'Zelda',  title: 'The Wise',       emoji: '👸',  stars: 5, side: 'hero', atk: 0.9, def: 1.1, heal: 1.5, specialty: '💚 Healer' },
-  { id: 'impa',   name: 'Impa',   title: 'Shadow Warrior', emoji: '🥷',  stars: 4, side: 'hero', atk: 1.3, def: 0.8, heal: 0.9, specialty: '💥 Double Shot', multiAttack: true },
-  { id: 'daruk',  name: 'Daruk',  title: 'Goron Champion', emoji: '🛡️', stars: 4, side: 'hero', atk: 0.8, def: 1.6, heal: 0.7, specialty: '🛡️ Tank' },
-  { id: 'mipha',  name: 'Mipha',  title: 'Zora Healer',    emoji: '💧',  stars: 4, side: 'hero', atk: 0.7, def: 1.0, heal: 1.6, specialty: '💚 Healer' },
-  { id: 'revali', name: 'Revali', title: 'Rito Archer',    emoji: '🏹',  stars: 3, side: 'hero', atk: 1.5, def: 0.6, heal: 0.7, specialty: '💥 Double Shot', multiAttack: true },
+  { id: 'link',   name: 'Link',   title: 'The Hero',       emoji: '⚔️',  stars: 5, side: 'hero', atk: 1.4, def: 1.0, heal: 0.8, baseHp: 750, specialty: '⚔️ Power' },
+  { id: 'zelda',  name: 'Zelda',  title: 'The Wise',       emoji: '👸',  stars: 5, side: 'hero', atk: 0.9, def: 1.1, heal: 1.5, baseHp: 600, specialty: '💚 Healer' },
+  { id: 'impa',   name: 'Impa',   title: 'Shadow Warrior', emoji: '🥷',  stars: 4, side: 'hero', atk: 1.3, def: 0.8, heal: 0.9, baseHp: 550, specialty: '💥 Double Shot', multiAttack: true },
+  { id: 'daruk',  name: 'Daruk',  title: 'Goron Champion', emoji: '🛡️', stars: 4, side: 'hero', atk: 0.8, def: 1.6, heal: 0.7, baseHp: 900, specialty: '🛡️ Tank' },
+  { id: 'mipha',  name: 'Mipha',  title: 'Zora Healer',    emoji: '💧',  stars: 4, side: 'hero', atk: 0.7, def: 1.0, heal: 1.6, baseHp: 600, specialty: '💚 Healer' },
+  { id: 'revali', name: 'Revali', title: 'Rito Archer',    emoji: '🏹',  stars: 3, side: 'hero', atk: 1.5, def: 0.6, heal: 0.7, baseHp: 450, specialty: '💥 Double Shot', multiAttack: true },
+  { id: 'urbosa', name: 'Urbosa', title: 'Gerudo Chief',   emoji: '⚡',  stars: 5, side: 'hero', atk: 1.3, def: 1.1, heal: 0.9, baseHp: 750, specialty: '⚡ Triple Shot', tripleAttack: true },
+  { id: 'sidon',  name: 'Sidon',  title: 'Zora Prince',    emoji: '🦈',  stars: 4, side: 'hero', atk: 1.0, def: 1.3, heal: 1.2, baseHp: 700, specialty: '🛡️ Tank' },
+  { id: 'midna',  name: 'Midna',  title: 'Twilight Princess', emoji: '🌙', stars: 5, side: 'hero', atk: 1.2, def: 0.9, heal: 1.3, baseHp: 650, specialty: '💚 Healer' },
 ];
 
 const VILLAINS = [
-  { id: 'phantom-ganon', name: 'Phantom Ganon', title: 'The Illusion',     emoji: '👻', stars: 4, side: 'villain', atk: 1.2, def: 1.0, heal: 1.1, specialty: '💥 Double Shot', multiAttack: true },
-  { id: 'ganondorf',     name: 'Ganondorf',     title: 'King of Evil',     emoji: '😈', stars: 5, side: 'villain', atk: 1.5, def: 1.2, heal: 0.7, specialty: '⚔️ Power' },
-  { id: 'dark-link',     name: 'Dark Link',     title: 'Shadow Clone',     emoji: '🌑', stars: 4, side: 'villain', atk: 1.3, def: 0.9, heal: 0.9, specialty: '⚔️ Speed' },
-  { id: 'skull-kid',     name: 'Skull Kid',     title: 'Mischief Maker',   emoji: '🎭', stars: 3, side: 'villain', atk: 1.0, def: 0.7, heal: 1.4, specialty: '💚 Healer' },
-  { id: 'zant',          name: 'Zant',          title: 'Twilight Usurper', emoji: '👿', stars: 4, side: 'villain', atk: 1.1, def: 1.4, heal: 0.8, specialty: '🛡️ Tank' },
-  { id: 'ghirahim',      name: 'Ghirahim',      title: 'Demon Lord',       emoji: '💀', stars: 4, side: 'villain', atk: 1.4, def: 0.8, heal: 0.8, specialty: '💥 Double Shot', multiAttack: true },
+  { id: 'phantom-ganon', name: 'Phantom Ganon', title: 'The Illusion',     emoji: '👻', stars: 4, side: 'villain', atk: 1.2, def: 1.0, heal: 1.1, baseHp: 700, specialty: '💥 Double Shot', multiAttack: true },
+  { id: 'ganondorf',     name: 'Ganondorf',     title: 'King of Evil',     emoji: '😈', stars: 5, side: 'villain', atk: 1.5, def: 1.2, heal: 0.7, baseHp: 800, specialty: '⚔️ Power' },
+  { id: 'dark-link',     name: 'Dark Link',     title: 'Shadow Clone',     emoji: '🌑', stars: 4, side: 'villain', atk: 1.3, def: 0.9, heal: 0.9, baseHp: 600, specialty: '⚔️ Speed' },
+  { id: 'skull-kid',     name: 'Skull Kid',     title: 'Mischief Maker',   emoji: '🎭', stars: 3, side: 'villain', atk: 1.0, def: 0.7, heal: 1.4, baseHp: 500, specialty: '💚 Healer' },
+  { id: 'zant',          name: 'Zant',          title: 'Twilight Usurper', emoji: '👿', stars: 4, side: 'villain', atk: 1.1, def: 1.4, heal: 0.8, baseHp: 850, specialty: '🛡️ Tank' },
+  { id: 'ghirahim',      name: 'Ghirahim',      title: 'Demon Lord',       emoji: '💀', stars: 4, side: 'villain', atk: 1.4, def: 0.8, heal: 0.8, baseHp: 600, specialty: '💥 Double Shot', multiAttack: true },
+  { id: 'vaati',         name: 'Vaati',         title: 'Wind Mage',        emoji: '🌪️', stars: 4, side: 'villain', atk: 1.3, def: 0.9, heal: 1.0, baseHp: 650, specialty: '⚔️ Speed' },
+  { id: 'majora',        name: 'Majora',        title: 'Fierce Deity',     emoji: '🎃', stars: 5, side: 'villain', atk: 1.4, def: 1.0, heal: 0.9, baseHp: 750, specialty: '⚡ Triple Shot', tripleAttack: true },
+  { id: 'yiga',          name: 'Master Kohga',  title: 'Yiga Clan Boss',   emoji: '🥷', stars: 3, side: 'villain', atk: 0.9, def: 1.3, heal: 1.2, baseHp: 700, specialty: '🛡️ Tank' },
 ];
-
-const BASE_HP = 500;
+// BASE_HP removed — each character has their own baseHp, randomized each battle
 const BASE_ATK = [80, 120]; // base min/max attack damage
 const BASE_HEAL = [60, 100]; // base min/max heal amount
 const DEFEND_TURNS = 2; // how many turns defend lasts
@@ -1597,12 +1639,19 @@ refreshSetup();
 //   BATTLE INITIALIZATION
 // =============================================
 
-function makeBattleChar(char) {
+// HP values that can be assigned to a slot — always in multiples of 50
+const HP_OPTIONS = [500, 550, 600, 650, 700, 750, 800, 850];
+
+function pickRandomHp() {
+  return HP_OPTIONS[randInt(0, HP_OPTIONS.length - 1)];
+}
+
+function makeBattleChar(char, hp) {
   return {
     ...char,
-    hp: BASE_HP,
-    maxHp: BASE_HP,
-    defendTurns: 0, // number of turns left defending
+    hp: hp,
+    maxHp: hp,
+    defendTurns: 0,
     acted: false,
     dead: false,
   };
@@ -1630,8 +1679,14 @@ function buildTurnOrder() {
 }
 
 function startBattle() {
-  state.battleHeroes = state.heroTeam.map(makeBattleChar);
-  state.battleVillains = state.villainTeam.map(makeBattleChar);
+  // Pick random HP for each slot — same HP at each position on both teams
+  const slotCount = Math.max(state.heroTeam.length, state.villainTeam.length);
+  const slotHps = [];
+  for (let i = 0; i < slotCount; i++) {
+    slotHps.push(pickRandomHp());
+  }
+  state.battleHeroes = state.heroTeam.map((c, i) => makeBattleChar(c, slotHps[i]));
+  state.battleVillains = state.villainTeam.map((c, i) => makeBattleChar(c, slotHps[i]));
   state.phase = 'starting';
   state.targeting = null;
   state.turnPos = 0;
@@ -1836,6 +1891,7 @@ function updateActionPanel() {
   const healBtn = document.getElementById('btn-heal');
   const defendBtn = document.getElementById('btn-defend');
   const multiBtn = document.getElementById('btn-multi');
+  const tripleBtn = document.getElementById('btn-triple');
 
   if (state.phase !== 'hero-action' || !hero) {
     nameEl.textContent = '—';
@@ -1843,6 +1899,7 @@ function updateActionPanel() {
     healBtn.classList.add('disabled');
     defendBtn.classList.add('disabled');
     multiBtn.classList.add('disabled');
+    tripleBtn.classList.add('disabled');
     return;
   }
 
@@ -1853,13 +1910,9 @@ function updateActionPanel() {
   healBtn.classList.remove('disabled');
   defendBtn.classList.remove('disabled');
 
-  // Show multi-attack only for characters with that ability and 2+ enemies alive
   const aliveEnemies = state.battleVillains.filter(v => !v.dead).length;
-  if (hero.multiAttack && aliveEnemies >= 2) {
-    multiBtn.classList.remove('disabled');
-  } else {
-    multiBtn.classList.add('disabled');
-  }
+  multiBtn.classList.toggle('disabled', !(hero.multiAttack && aliveEnemies >= 2));
+  tripleBtn.classList.toggle('disabled', !(hero.tripleAttack && aliveEnemies >= 3));
 
   setActiveCard('hero', state.currentHeroIdx);
 }
@@ -1872,6 +1925,7 @@ function updateVillainActionPanel() {
   const healBtn = document.getElementById('btn-heal');
   const defendBtn = document.getElementById('btn-defend');
   const multiBtn = document.getElementById('btn-multi');
+  const tripleBtn = document.getElementById('btn-triple');
 
   unlockActions();
   titleEl.textContent = 'Player 2 — Choose Action For:';
@@ -1880,13 +1934,9 @@ function updateVillainActionPanel() {
   healBtn.classList.remove('disabled');
   defendBtn.classList.remove('disabled');
 
-  // Show multi-attack only for characters with that ability and 2+ enemies alive
   const aliveEnemies = state.battleHeroes.filter(h => !h.dead).length;
-  if (villain.multiAttack && aliveEnemies >= 2) {
-    multiBtn.classList.remove('disabled');
-  } else {
-    multiBtn.classList.add('disabled');
-  }
+  multiBtn.classList.toggle('disabled', !(villain.multiAttack && aliveEnemies >= 2));
+  tripleBtn.classList.toggle('disabled', !(villain.tripleAttack && aliveEnemies >= 3));
 
   setActiveCard('villain', state.currentVillainIdx);
 }
@@ -1901,7 +1951,7 @@ function unlockActions() {
 
 function disableActions() {
   lockActions();
-  ['btn-attack', 'btn-heal', 'btn-defend', 'btn-multi'].forEach(id => {
+  ['btn-attack', 'btn-heal', 'btn-defend', 'btn-multi', 'btn-triple'].forEach(id => {
     document.getElementById(id).classList.add('disabled');
   });
   hideTargetPrompt();
@@ -2048,12 +2098,27 @@ document.getElementById('btn-multi').addEventListener('click', () => {
     const hero = state.battleHeroes[state.currentHeroIdx];
     if (!hero.multiAttack) return;
     disableActions();
-    performMultiAttack(hero, state.currentHeroIdx, 'hero');
+    performMultiAttack(hero, state.currentHeroIdx, 'hero', 2);
   } else if (state.phase === 'villain-action') {
     const villain = state.battleVillains[state.currentVillainIdx];
     if (!villain.multiAttack) return;
     disableActions();
-    performMultiAttack(villain, state.currentVillainIdx, 'villain');
+    performMultiAttack(villain, state.currentVillainIdx, 'villain', 2);
+  }
+});
+
+document.getElementById('btn-triple').addEventListener('click', () => {
+  if (state.actionLocked) return;
+  if (state.phase === 'hero-action') {
+    const hero = state.battleHeroes[state.currentHeroIdx];
+    if (!hero.tripleAttack) return;
+    disableActions();
+    performMultiAttack(hero, state.currentHeroIdx, 'hero', 3);
+  } else if (state.phase === 'villain-action') {
+    const villain = state.battleVillains[state.currentVillainIdx];
+    if (!villain.tripleAttack) return;
+    disableActions();
+    performMultiAttack(villain, state.currentVillainIdx, 'villain', 3);
   }
 });
 
@@ -2126,63 +2191,64 @@ function performHeroDefend(heroIdx) {
   }, 500);
 }
 
-function performMultiAttack(attacker, attackerIdx, attackerSide) {
+function performMultiAttack(attacker, attackerIdx, attackerSide, shotCount) {
   const enemies = attackerSide === 'hero' ? state.battleVillains : state.battleHeroes;
   const enemySide = attackerSide === 'hero' ? 'villain' : 'hero';
   const attackerCardPrefix = attackerSide === 'hero' ? 'card-hero' : 'card-villain';
   const enemyCardPrefix = attackerSide === 'hero' ? 'card-villain' : 'card-hero';
 
-  // Pick 2 random alive enemies
+  // Pick random alive enemies (one per shot)
   const aliveEnemies = enemies.map((e, i) => ({ char: e, idx: i })).filter(e => !e.char.dead);
   const shuffled = [...aliveEnemies].sort(() => Math.random() - 0.5);
-  const targets = shuffled.slice(0, 2);
+  const targets = shuffled.slice(0, shotCount);
 
-  // Each hit does 70% of normal damage (two hits = 140% total, so it's strong but each hit is weaker)
-  const hitMultiplier = 0.7;
+  // More shots = less damage per hit (2 shots: 70% each = 140% total, 3 shots: 55% each = 165% total)
+  const hitMultiplier = shotCount === 3 ? 0.55 : 0.7;
+  const label = shotCount === 3 ? 'TRIPLE SHOT' : 'DOUBLE SHOT';
+  const icon = shotCount === 3 ? '⚡' : '💥';
 
-  addLog(`💥 ${attacker.name} unleashes a DOUBLE SHOT!`, 'attack');
+  addLog(`${icon} ${attacker.name} unleashes a ${label}!`, 'attack');
   playAttackSound();
 
-  // First hit
-  const t1 = targets[0];
-  let dmg1 = Math.floor(getAttackDamage(attacker) * hitMultiplier);
-  if (t1.char.defendTurns > 0) dmg1 = Math.floor(dmg1 * (1 - getDefenseReduction(t1.char)));
-  t1.char.hp = Math.max(0, t1.char.hp - dmg1);
-  if (t1.char.hp === 0) t1.char.dead = true;
-
-  addLog(`  ➤ Hits ${t1.char.name} for ${dmg1} damage!${t1.char.defendTurns > 0 ? ' (blocked!)' : ''}`, 'attack');
-  animateAttack(`${attackerCardPrefix}-${attackerIdx}`, `${enemyCardPrefix}-${t1.idx}`, dmg1, false);
-
-  setTimeout(() => {
-    updateCard(enemySide, t1.idx);
-    if (t1.char.dead) {
-      addLog(`💥 ${t1.char.name} has been defeated!`, 'defeat');
-      playDefeatSound();
-    }
-
-    // Second hit
-    const t2 = targets[1];
-    let dmg2 = Math.floor(getAttackDamage(attacker) * hitMultiplier);
-    if (t2.char.defendTurns > 0) dmg2 = Math.floor(dmg2 * (1 - getDefenseReduction(t2.char)));
-    if (!t2.char.dead) {
-      t2.char.hp = Math.max(0, t2.char.hp - dmg2);
-      if (t2.char.hp === 0) t2.char.dead = true;
-    }
-
-    addLog(`  ➤ Hits ${t2.char.name} for ${t2.char.dead && t2 !== t1 ? 0 : dmg2} damage!${t2.char.defendTurns > 0 ? ' (blocked!)' : ''}`, 'attack');
-    playAttackSound();
-    animateAttack(`${attackerCardPrefix}-${attackerIdx}`, `${enemyCardPrefix}-${t2.idx}`, dmg2, false);
-
-    setTimeout(() => {
-      updateCard(enemySide, t2.idx);
-      if (t2.char.dead && t2 !== t1) {
-        addLog(`💥 ${t2.char.name} has been defeated!`, 'defeat');
-        playDefeatSound();
-      }
+  // Process each shot sequentially with delays
+  function processShot(shotIdx) {
+    if (shotIdx >= targets.length) {
       state.turnPos++;
       advanceToNextTurn();
-    }, 600);
-  }, 600);
+      return;
+    }
+
+    const t = targets[shotIdx];
+    const wasDead = t.char.dead;
+
+    if (wasDead) {
+      // Skip already dead targets
+      processShot(shotIdx + 1);
+      return;
+    }
+
+    let dmg = Math.floor(getAttackDamage(attacker) * hitMultiplier);
+    const blocked = t.char.defendTurns > 0;
+    if (blocked) dmg = Math.floor(dmg * (1 - getDefenseReduction(t.char)));
+
+    t.char.hp = Math.max(0, t.char.hp - dmg);
+    if (t.char.hp === 0) t.char.dead = true;
+
+    addLog(`  ➤ Hits ${t.char.name} for ${dmg} damage!${blocked ? ' (blocked!)' : ''}`, 'attack');
+    if (shotIdx > 0) playAttackSound();
+    animateAttack(`${attackerCardPrefix}-${attackerIdx}`, `${enemyCardPrefix}-${t.idx}`, dmg, false);
+
+    setTimeout(() => {
+      updateCard(enemySide, t.idx);
+      if (t.char.dead && !wasDead) {
+        addLog(`💥 ${t.char.name} has been defeated!`, 'defeat');
+        playDefeatSound();
+      }
+      processShot(shotIdx + 1);
+    }, 500);
+  }
+
+  processShot(0);
 }
 
 function advanceHeroTurn() {
@@ -2282,8 +2348,11 @@ function processSingleEnemyAction(villainIdx) {
   let roll = Math.random();
   let action;
 
+  // Use triple shot if available and 3+ enemies alive (30% chance)
+  if (villain.tripleAttack && aliveHeroes.length >= 3 && Math.random() < 0.3) {
+    action = 'triple';
   // Use double shot if available and 2+ enemies alive (30% chance)
-  if (villain.multiAttack && aliveHeroes.length >= 2 && Math.random() < 0.3) {
+  } else if (villain.multiAttack && aliveHeroes.length >= 2 && Math.random() < 0.3) {
     action = 'multi';
   } else if (villain.hp < villain.maxHp * 0.25 && Math.random() < 0.5) {
     action = 'heal';
@@ -2297,8 +2366,13 @@ function processSingleEnemyAction(villainIdx) {
     action = 'attack';
   }
 
+  if (action === 'triple') {
+    performMultiAttack(villain, villainIdx, 'villain', 3);
+    return;
+  }
+
   if (action === 'multi') {
-    performMultiAttack(villain, villainIdx, 'villain');
+    performMultiAttack(villain, villainIdx, 'villain', 2);
     return;
   }
 
@@ -2587,6 +2661,11 @@ document.getElementById('new-teams-btn').addEventListener('click', () => {
 
   refreshSetup();
   clearLog();
+});
+
+// Restart button (mid-battle) — same teams, fresh HP
+document.getElementById('restart-btn').addEventListener('click', () => {
+  startBattle();
 });
 </script>
 </body>
